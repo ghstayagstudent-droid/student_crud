@@ -1,4 +1,7 @@
-const API_BASE = '/tayag/students';
+// Determine API base URL: Use VITE_API_URL in production (Render) or default to '/tayag/students' for local proxy
+const RAW_URL = import.meta.env.VITE_API_URL;
+const BASE_HOST = RAW_URL ? RAW_URL.replace(/\/+$/, '') : '';
+const API_BASE = `${BASE_HOST}/tayag/students`;
 
 /**
  * Fetch all students from the API

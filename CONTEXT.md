@@ -3,85 +3,27 @@
 ## 1. Project Overview & Context
 This project connects a modern **Vite + React (JavaScript)** frontend to an existing **Spring Boot (Java)** REST API for managing student records.
 
-### Constraints & Preferences
-- **Framework & Tooling**: Vite + React (JavaScript)
-- **Styling**: Tailwind CSS
-- **Design Rule**: **NO MODALS**.
-  - **Form interaction**: An inline/card-based form (split layout) for Create and Edit operations.
-  - **Delete confirmation**: Inline row-level confirmation (`Delete? [Yes] [Cancel]`) directly within table cells.
-- **Status**: **Completed & Verified (Build passing)**.
-
-### Backend Details (`student/`)
-- **Framework**: Spring Boot with Spring Data JPA & PostgreSQL
-- **Default Port**: `8080`
-- **Base Endpoint**: `/tayag/students`
-- **Entity Fields**: `id`, `firstname`, `lastname`, `course`, `section`
-
-#### REST Endpoints:
-| Method | Endpoint | Request Body | Description |
-|---|---|---|---|
-| `GET` | `/tayag/students` | None | Retrieves all student records |
-| `GET` | `/tayag/students/{id}` | None | Retrieves single student by ID |
-| `POST` | `/tayag/students` | `{ firstname, lastname, course, section }` | Creates a new student record |
-| `PUT` | `/tayag/students/{id}` | `{ firstname, lastname, course, section }` | Updates an existing student |
-| `DELETE` | `/tayag/students/{id}` | None | Deletes student by ID |
+- **GitHub Guide Repository**: `https://github.com/ghstayagstudent-droid/student_crud`
+- **Deployment Target**: [Render.com](https://render.com)
+- **Framework & Tooling**: Vite + React (JavaScript) + Tailwind CSS
+- **Design Rule**: **NO MODALS** (Inline forms & inline row-level confirmation).
 
 ---
 
-## 2. Implemented Architecture
+## 2. Render.com Deployment Configuration
 
-### Directory Structure
-```text
-STUDENET-CRUD/
-├── student/                     # Spring Boot Backend
-├── client/                      # Vite + React Frontend
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Navbar.jsx       # Header with total count & refresh sync button
-│   │   │   ├── AlertBanner.jsx  # In-page success/error notifications (No modals)
-│   │   │   ├── StudentForm.jsx  # In-page dual-mode form (Add & Edit)
-│   │   │   └── StudentTable.jsx # Table with live search filter & inline delete confirmation
-│   │   ├── services/
-│   │   │   └── studentApi.js    # Clean fetch API client for /tayag/students
-│   │   ├── App.jsx              # Central reactive state & layout
-│   │   ├── index.css            # Tailwind CSS directives
-│   │   └── main.jsx
-│   ├── vite.config.js           # Configured with proxy to http://localhost:8080
-│   └── package.json
-├── CONTEXT.md                   # Preserved context & specification
-└── README.md                    # Startup & guide documentation
-```
+### Frontend (Static Site):
+- **Build Command**: `npm run build`
+- **Publish Directory**: `dist`
+- **Environment Variable**: `VITE_API_URL` (points to the deployed Spring Boot backend URL, e.g. `https://student-api.onrender.com`).
+- **SPA Rewrites**: `/*` -> `/index.html` (Rewrite rule).
+- **Blueprint**: [`render.yaml`](file:///C:/Users/Student-00/Desktop/Tayag/JAVA/STUDENET-CRUD/client/render.yaml) provided for one-click deployment.
 
-### CORS & Proxy Strategy
-Configured in `client/vite.config.js`:
-```javascript
-server: {
-  port: 5173,
-  proxy: {
-    '/tayag': {
-      target: 'http://localhost:8080',
-      changeOrigin: true,
-    }
-  }
-}
-```
-
----
-
-## 3. Completed Implementation Phases
-
-- [x] **Phase 1: Project Scaffolding & Tailwind Installation**
-  - Vite React JavaScript app created in `client/`.
-  - Installed Tailwind CSS v4 and `@tailwindcss/vite` plugin.
-  - Configured `vite.config.js` with proxy to Spring Boot on `localhost:8080`.
-- [x] **Phase 2: API Service Layer**
-  - Created `client/src/services/studentApi.js` implementing all 5 CRUD operations.
-- [x] **Phase 3: Component Architecture (No Modals)**
-  - Built `StudentForm.jsx` (inline card supporting both Add and Edit modes).
-  - Built `StudentTable.jsx` (search filter + inline row-level delete confirmation prompt).
-  - Built `AlertBanner.jsx` (in-page feedback alerts).
-  - Built `Navbar.jsx` (header with sync button and live count badge).
-- [x] **Phase 4: State Management & Wiring**
-  - Integrated state in `App.jsx` for seamless CRUD lifecycle, validation, and auto-scroll to edit mode.
-- [x] **Phase 5: Build Verification**
-  - Tested production build with `npm run build` in `client/` (passed with zero errors).
+### Backend (Web Service / Docker):
+- **CORS Support**: Added `@CrossOrigin(origins = "*")` to [`StudentController.java`](file:///C:/Users/Student-00/Desktop/Tayag/JAVA/STUDENET-CRUD/student/src/main/java/com/tayag/student/StudentController.java) to allow cross-origin requests from Render frontend.
+- **Dynamic Port**: Added `server.port=${PORT:8080}` to support Render's dynamically assigned `$PORT`.
+- **Database Connection**: Configured parameterized PostgreSQL properties:
+  - `${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/db_user}`
+  - `${SPRING_DATASOURCE_USERNAME:postgres}`
+  - `${SPRING_DATASOURCE_PASSWORD:admin}`
+- **Containerization**: Provided multi-stage [`Dockerfile`](file:///C:/Users/Student-00/Desktop/Tayag/JAVA/STUDENET-CRUD/student/Dockerfile) for zero-config Docker deployment on Render.

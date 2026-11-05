@@ -2,6 +2,8 @@
 
 A full-stack Student CRUD application combining a **Spring Boot** REST backend with a modern **Vite + React (JavaScript)** frontend styled with **Tailwind CSS**.
 
+Repository guide: [https://github.com/ghstayagstudent-droid/student_crud](https://github.com/ghstayagstudent-droid/student_crud)
+
 ---
 
 ## 📁 Repository Structure
@@ -16,54 +18,67 @@ STUDENET-CRUD/
 │   │   │   ├── StudentForm.jsx      # In-page dual-mode form (Add / Edit)
 │   │   │   └── StudentTable.jsx     # Searchable directory with inline delete confirmation
 │   │   ├── services/
-│   │   │   └── studentApi.js        # REST client (/tayag/students)
+│   │   │   └── studentApi.js        # REST client (/tayag/students + VITE_API_URL support)
 │   │   ├── App.jsx                  # Main application state & reactive layout
 │   │   ├── index.css                # Tailwind CSS v4 entry
 │   │   └── main.jsx
+│   ├── render.yaml                  # Render Blueprint definition for one-click deploy
+│   ├── .env.example                 # Example environment variable (VITE_API_URL)
 │   ├── vite.config.js               # Dev server proxy (/tayag -> localhost:8080)
 │   └── package.json
 ├── student/                 # Spring Boot Backend (Java 17+, PostgreSQL)
 │   ├── src/main/java/com/tayag/student/
 │   │   ├── Student.java             # Entity model (id, firstname, lastname, course, section)
-│   │   ├── StudentController.java   # REST controller (/tayag/students)
+│   │   ├── StudentController.java   # REST controller with @CrossOrigin for cloud deploy
 │   │   └── StudentRepository.java   # Spring Data JPA Repository
+│   ├── Dockerfile                   # Multi-stage Dockerfile for Render Web Service
 │   └── src/main/resources/application.properties
 ├── CONTEXT.md               # Context documentation and architecture roadmap
-└── README.md                # Project startup & usage instructions
+└── README.md                # Project startup & deployment instructions
 ```
 
 ---
 
-## 🚀 How to Run the Application
+## 🌐 Deploying on Render.com
+
+### Part 1: Deploy Frontend (`client`) as a Static Site
+1. Go to [dashboard.render.com](https://dashboard.render.com/) -> **New +** -> **Static Site**.
+2. Connect `https://github.com/ghstayagstudent-droid/student_crud`.
+3. Configure settings:
+   - **Build Command**: `npm run build`
+   - **Publish Directory**: `dist`
+4. Set Environment Variables:
+   - **`VITE_API_URL`**: `https://<your-backend-api>.onrender.com` (leave empty for local proxy).
+5. In **Redirects / Rewrites**, add:
+   - **Type**: `Rewrite` | **Source**: `/*` | **Destination**: `/index.html`
+6. Click **Create Static Site**.
+
+---
+
+### Part 2: Deploy Backend (`student`) as a Web Service (Docker)
+1. In Render Dashboard, click **New +** -> **PostgreSQL** to create a free PostgreSQL instance.
+2. Click **New +** -> **Web Service**, select repository, and choose **Docker**.
+3. Set Environment Variables:
+   - `PORT`: `8080`
+   - `SPRING_DATASOURCE_URL`: `jdbc:postgresql://<render-db-host>:<port>/<db_name>`
+   - `SPRING_DATASOURCE_USERNAME`: `<username>`
+   - `SPRING_DATASOURCE_PASSWORD`: `<password>`
+4. Copy your backend service URL and paste it into `VITE_API_URL` on your frontend static site.
+
+---
+
+## 💻 Local Development
 
 ### 1. Start PostgreSQL & Backend (Spring Boot)
-Ensure PostgreSQL is running locally with database `db_user` (credentials configured in `student/src/main/resources/application.properties`).
-
-Open a terminal and run:
 ```powershell
 cd student
 .\mvnw.cmd spring-boot:run
 ```
-The backend starts at `http://localhost:8080`.
+*(Runs at `http://localhost:8080`)*
 
 ### 2. Start Frontend (Vite + React)
-Open a second terminal and run:
 ```powershell
 cd client
 npm run dev
 ```
-The frontend dev server starts at `http://localhost:5173`.
-
-Vite is pre-configured with a reverse proxy in `vite.config.js` to seamlessly route `/tayag` requests to `http://localhost:8080`.
-
----
-
-## 🎯 Key Features
-
-- **Vite + React (JavaScript)**: Fast HMR, clean component architecture, and lightweight client.
-- **Tailwind CSS**: Sleek, responsive design with clear typography, badges, and focus indicators.
-- **Zero Modals**:
-  - **Add / Edit Mode**: Managed via an in-page sticky card form. Clicking "Edit" populates the form and reveals a "Cancel Edit" button.
-  - **Inline Delete Confirmation**: Clicking "Delete" turns the row action cell into an inline `"Delete? [Yes] [Cancel]"` prompt without interrupting popups.
-- **Real-time Search Filter**: Instant client-side filtering by name, course, section, or student ID.
-- **In-page Alert Notifications**: Dynamic banners for instant feedback on success or connection errors.
+*(Runs at `http://localhost:5173`)*

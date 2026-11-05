@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
+
+@CrossOrigin(origins = "*")
 @Controller
 @RequestMapping(path="/tayag/students")
 public class StudentController {
@@ -17,7 +19,7 @@ public class StudentController {
     @PostMapping
     public ResponseEntity createStudent(@RequestBody Student student) throws URISyntaxException {
         Student savedStudent = studentRepository.save(student);
-        return ResponseEntity.created(new URI("/students" + savedStudent.getId())).body(savedStudent);
+        return ResponseEntity.created(new URI("/students/" + savedStudent.getId())).body(savedStudent);
     }
 
     @GetMapping
