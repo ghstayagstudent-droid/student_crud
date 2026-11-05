@@ -2,83 +2,83 @@
 
 A full-stack Student CRUD application combining a **Spring Boot** REST backend with a modern **Vite + React (JavaScript)** frontend styled with **Tailwind CSS**.
 
-Repository guide: [https://github.com/ghstayagstudent-droid/student_crud](https://github.com/ghstayagstudent-droid/student_crud)
+Repository: [https://github.com/ghstayagstudent-droid/student_crud](https://github.com/ghstayagstudent-droid/student_crud)
 
 ---
 
-## 📁 Repository Structure
+## 🚀 Deployment Guide on Render.com
 
-```text
-STUDENET-CRUD/
-├── client/                  # Vite + React Frontend (JavaScript + Tailwind CSS)
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Navbar.jsx           # Top header with sync status & record count
-│   │   │   ├── AlertBanner.jsx      # In-page success/error notifications (No modals)
-│   │   │   ├── StudentForm.jsx      # In-page dual-mode form (Add / Edit)
-│   │   │   └── StudentTable.jsx     # Searchable directory with inline delete confirmation
-│   │   ├── services/
-│   │   │   └── studentApi.js        # REST client (/tayag/students + VITE_API_URL support)
-│   │   ├── App.jsx                  # Main application state & reactive layout
-│   │   ├── index.css                # Tailwind CSS v4 entry
-│   │   └── main.jsx
-│   ├── render.yaml                  # Render Blueprint definition for one-click deploy
-│   ├── .env.example                 # Example environment variable (VITE_API_URL)
-│   ├── vite.config.js               # Dev server proxy (/tayag -> localhost:8080)
-│   └── package.json
-├── student/                 # Spring Boot Backend (Java 17+, PostgreSQL)
-│   ├── src/main/java/com/tayag/student/
-│   │   ├── Student.java             # Entity model (id, firstname, lastname, course, section)
-│   │   ├── StudentController.java   # REST controller with @CrossOrigin for cloud deploy
-│   │   └── StudentRepository.java   # Spring Data JPA Repository
-│   ├── Dockerfile                   # Multi-stage Dockerfile for Render Web Service
-│   └── src/main/resources/application.properties
-├── CONTEXT.md               # Context documentation and architecture roadmap
-└── README.md                # Project startup & deployment instructions
-```
+This repository is configured to support two deployment approaches on **[Render.com](https://render.com/)**:
+1. **Method A: 1-Click Automated Blueprint (`render.yaml`)** *(Recommended)*
+2. **Method B: Manual Service Setup**
 
 ---
 
-## 🌐 Deploying on Render.com
+### Method A: Automated 1-Click Blueprint (Recommended)
 
-### Part 1: Deploy Frontend (`client`) as a Static Site
-1. Go to [dashboard.render.com](https://dashboard.render.com/) -> **New +** -> **Static Site**.
-2. Connect `https://github.com/ghstayagstudent-droid/student_crud`.
-3. Configure settings:
-   - **Build Command**: `npm run build`
-   - **Publish Directory**: `dist`
-4. Set Environment Variables:
-   - **`VITE_API_URL`**: `https://<your-backend-api>.onrender.com` (leave empty for local proxy).
-5. In **Redirects / Rewrites**, add:
-   - **Type**: `Rewrite` | **Source**: `/*` | **Destination**: `/index.html`
-6. Click **Create Static Site**.
+The included [`render.yaml`](./render.yaml) automatically provisions all 3 required services and connects them together:
+- 🐘 **PostgreSQL Database** (`student-db`)
+- ☕ **Spring Boot Backend** (`student-backend`)
+- ⚛️ **Vite + React Frontend** (`student-frontend`)
+
+#### Steps:
+1. Log in to [dashboard.render.com](https://dashboard.render.com/).
+2. In the top navigation, click **"Blueprints"** &rarr; **"New Blueprint Instance"**.
+3. Connect your repository:
+   ```text
+   https://github.com/ghstayagstudent-droid/student_crud
+   ```
+4. Render will read [`render.yaml`](./render.yaml), display the 3 services, and auto-populate their environment variables.
+5. Click **"Apply"**. Render will deploy the database, compile the backend Docker container, build the frontend, and link the frontend's `VITE_API_URL` automatically.
 
 ---
 
-### Part 2: Deploy Backend (`student`) as a Web Service (Docker)
-1. In Render Dashboard, click **New +** -> **PostgreSQL** to create a free PostgreSQL instance.
-2. Click **New +** -> **Web Service**, select repository, and choose **Docker**.
-3. Set Environment Variables:
-   - `PORT`: `8080`
-   - `SPRING_DATASOURCE_URL`: `jdbc:postgresql://<render-db-host>:<port>/<db_name>`
-   - `SPRING_DATASOURCE_USERNAME`: `<username>`
-   - `SPRING_DATASOURCE_PASSWORD`: `<password>`
-4. Copy your backend service URL and paste it into `VITE_API_URL` on your frontend static site.
+### Method B: Manual Service Setup on Render
+
+If you prefer setting up the services individually:
+
+#### 1. Database (PostgreSQL)
+- Click **"New +"** &rarr; **"PostgreSQL"**.
+- Name: `student-db` | Database: `db_user` | User: `postgres`.
+- Copy the **Internal Database URL** once provisioned.
+
+#### 2. Backend Web Service (Spring Boot)
+- Click **"New +"** &rarr; **"Web Service"** &rarr; Select repository.
+- **Root Directory**: `student`
+- **Environment**: `Docker` *(Render auto-detects `student/Dockerfile`)*
+- **Environment Variables**:
+  - `PORT`: `8080`
+  - `SPRING_DATASOURCE_URL`: `jdbc:postgresql://<internal-db-host>:5432/db_user`
+  - `SPRING_DATASOURCE_USERNAME`: `<db-user>`
+  - `SPRING_DATASOURCE_PASSWORD`: `<db-password>`
+- Copy your deployed backend service URL (e.g., `https://student-backend.onrender.com`).
+
+#### 3. Frontend Static Site (Vite + React)
+- Click **"New +"** &rarr; **"Static Site"** &rarr; Select repository.
+- **Root Directory**: `client`
+- **Build Command**: `npm run build`
+- **Publish Directory**: `dist`
+- **Environment Variables**:
+  - `VITE_API_URL`: `https://student-backend.onrender.com` *(your backend URL without trailing slash)*
+- **Redirects / Rewrites** tab:
+  - Add Rule: **Type**: `Rewrite` | **Source**: `/*` | **Destination**: `/index.html`
+- Click **"Create Static Site"**.
 
 ---
 
 ## 💻 Local Development
 
-### 1. Start PostgreSQL & Backend (Spring Boot)
+### 1. Start PostgreSQL & Spring Boot Backend
+Ensure local PostgreSQL is running with database `db_user`.
 ```powershell
 cd student
 .\mvnw.cmd spring-boot:run
 ```
-*(Runs at `http://localhost:8080`)*
+*(Backend runs at `http://localhost:8080`)*
 
-### 2. Start Frontend (Vite + React)
+### 2. Start Vite React Frontend
 ```powershell
 cd client
 npm run dev
 ```
-*(Runs at `http://localhost:5173`)*
+*(Frontend runs at `http://localhost:5173`)*
