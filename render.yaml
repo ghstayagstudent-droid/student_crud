@@ -62,4 +62,4 @@ databases:
   - name: student-db
     plan: free
     databaseName: db_user
-    user: postgres
+    user: student_user
